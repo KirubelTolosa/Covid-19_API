@@ -1,0 +1,65 @@
+// Total Confired Cases worldwide
+select sum(DISTINCT Recoveries.RecoveriesCount) AS 'Recoveries WorldWide'  
+FROM LocationsGlobal 
+INNER JOIN  Recoveries ON  Recoveries.Id = LocationsGlobal.Id
+WHERE Recoveries.[Date] = (select MAX([Date]) FROM ConfirmedCases) 
+
+// Total Recoveries worldwide
+
+select sum(DISTINCT ConfirmedCases.ConfirmedCasesCount) AS 'Confirmed Cases WorldWide'  
+FROM LocationsGlobal 
+INNER JOIN  ConfirmedCases ON  ConfirmedCases.Id = LocationsGlobal.Id
+WHERE ConfirmedCases.[Date] = (select MAX([Date]) FROM ConfirmedCases)
+
+// Total Deaths worldwide
+select sum(DISTINCT Deaths.DeathCount) AS 'Death WorldWide' 
+FROM LocationsGlobal 
+INNER JOIN  Deaths ON  LocationsGlobal.Id = Deaths.Id  
+WHERE Deaths.[Date] = (select MAX([Date]) FROM ConfirmedCases)
+
+// Distinct countryvalues with their totaled confirmed cases
+select LocationsGlobal.Country, Sum(ConfirmedCases.ConfirmedCasesCount) 
+from LocationsGlobal 
+INNER JOIN  ConfirmedCases ON  ConfirmedCases.Id = LocationsGlobal.Id
+group by LocationsGlobal.Country
+
+// Distinct countryvalues with their totaled Death cases
+select LocationsGlobal.Country, Sum(Deaths.DeathCount) 
+from LocationsGlobal 
+INNER JOIN  Deaths ON  Deaths.Id = LocationsGlobal.Id
+group by LocationsGlobal.Country
+
+// Distinct countryvalues with their totaled Recoveries
+select LocationsGlobal.Country, Sum(Recoveries.RecoveriesCount) 
+from LocationsGlobal 
+INNER JOIN  Recoveries ON  Recoveries.Id = LocationsGlobal.Id
+group by LocationsGlobal.Country
+
+CREATE TABLE RECOVERIES 
+	(ID	 int	not null ,
+	RecoveriesCount	int,	
+	[Date]	date,	
+	Primary key (Id, [Date]),
+    Foreign key (ID) references LocationsGlobal(ID));
+
+CREATE TABLE DEATHS 
+	(ID	 int	not null,
+	DeathCount	int,	
+	[Date]	date,	
+	Primary key (Id, [Date]),
+    Foreign key (ID) references LocationsGlobal(ID));
+
+CREATE TABLE ConfirmedCases 
+	(ID	 int	not null,
+	ConfirmedCasesCount	int,	
+	[Date]	date,	
+	Primary key (Id, [Date]),
+	Foreign key (ID) references LocationsGlobal(ID));
+
+CREATE TABLE LocationsGlobal 
+	(ID	 int	not null IDENTITY (1,1),
+	Country	nvarchar(45),	
+	[State]	nvarchar(45),	
+	Lat	float,
+	Long float,
+	Primary key (ID))
