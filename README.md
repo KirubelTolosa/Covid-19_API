@@ -1,10 +1,20 @@
 # COVID-19 REST API
-This covid-19 rest api can be used to look-up global covid related data, ConfirmedCases, Deaths, and Recoveries. Its a pipeline application that pulls data from "Johns Hopkins" repo, stores it a database and avails several endpoint to query the database. </br>
+This covid-19 Rest-API can be used to retrieve global covid related data, ConfirmedCases, Deaths, and Recoveries. It contains a pipeline console application which ports over .csv format data from the source to store in a Microsoft SQL Server database, and WebApplication that exposes several endpoints to query the database. </br>
 
-Hosting the application requires changing the endpoint to the databases and scheduling a task to update it with recent data. The running version of the application is hosted at aws elasticbeanstalk at the specified urls below and is scheduled to pull for updated data every five minutes. </br>
-<i>(US, State and County level data will be included in the next release).</i>
+### The technologies/libraries used in the application are the following
+<ul>
+    <li>Autofac (For dependency injection)</li>    
+    <li>ASP.NET (For the web application)</li>
+    <li>ADO.NET (For the data access to SQL db)</li>
+    <li>CSVHelper (For reading .csv responce)</li>
+    <li>AWS Toolkit for VS(Deploment to elastic beanstalk)</li>
+    <li>SQL Server Replication (To migrate local DB to Amazon RDS)</li>
+    <li>....</li>        
+</ul>
 
 
+
+Hosting the application requires changing the endpoint to the databases and scheduling a task to update it with recent data. The running version of the application is running in aws elasticbeanstalk environment at the specified urls below. A scheduled task is running every five minutes on a t2.micro EC2 instance to make a call to data source API, filter the most recent data and replenish the database.</br>
 
 *** The data source I used is provided by <i>"Johns Hopkins University_Center for Systems Science and Engineering (CSSE).</i>
 
@@ -20,20 +30,19 @@ Hosting the application requires changing the endpoint to the databases and sche
     <pre>
     
     Use the following uri reference to get national count of cases(metrics) from all nations in the world.  
-              "api/covid/Confirmed_Cases",
-              "api/covid/Deaths",
-              "api/covid/Recoveries"                  
+              "kirubeltolosa.com/api/covid/Confirmed_Cases",
+              "kirubeltolosa.com/api/covid/Deaths",
+              "kirubeltolosa.com/api/covid/Recoveries"                  
               
     Use the following uri reference to get the worldwide count of cases(metrics). 
-             "api/covid/{metrics}/GlobalCount"
+             "kirubeltolosa.com/api/covid/{metrics}/GlobalCount"
                     
     Use the following uri reference to get the national count of cases(metrics) of a nation. Optionally, you can include a date to find the count of cases on that date. 
-            "api/covid/{metrics}/Country/{Date : Optional}"
+            "kirubeltolosa.com/api/covid/{metrics}/Country/{Date : Optional}"
            
     Use the following uri refernce to get the totalled count of cases of nation for each tracked date. 
-            "api/covid/{metrics}/Country/DailyCount"  
+            "kirubeltolosa.com/api/covid/{metrics}/Country/DailyCount"  
    </pre>
 </br> 
-
  
 <i>I hope you will find this useful and please reach out to me at info@kirubeltolosa.com if you have any question or feedback. Thanks. </i>
