@@ -74,14 +74,14 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Application.cs" />
-    <Compile Include="BAL\BLDto\DailyCaseCountsBLDto.cs" />
-    <Compile Include="BAL\BLDto\GlobalTotalCountsBLDto.cs" />
-    <Compile Include="BAL\BLDto\NationalCasesBLDto.cs" />
-    <Compile Include="BAL\CovidBLService.cs" />
-    <Compile Include="BAL\BLDto\CovidCaseCountBLDto.cs" />
-    <Compile Include="BAL\BLDto\CovidLocationBLDto.cs" />
-    <Compile Include="BAL\BLDIModule.cs" />
-    <Compile Include="BAL\ICovidBLService.cs" />
+    <Compile Include="BLL\BLDto\DailyCaseCountsBLDto.cs" />
+    <Compile Include="BLL\BLDto\GlobalTotalCountsBLDto.cs" />
+    <Compile Include="BLL\BLDto\NationalCasesBLDto.cs" />
+    <Compile Include="BLL\CovidBLService.cs" />
+    <Compile Include="BLL\BLDto\CovidCaseCountBLDto.cs" />
+    <Compile Include="BLL\BLDto\CovidLocationBLDto.cs" />
+    <Compile Include="BLL\BLDIModule.cs" />
+    <Compile Include="BLL\ICovidBLService.cs" />
     <Compile Include="DAL\DADto\CovidCaseCountDADto.cs" />
     <Compile Include="DAL\CovidDataRepository.cs" />
     <Compile Include="DAL\DADto\CovidLocationDADto.cs" />

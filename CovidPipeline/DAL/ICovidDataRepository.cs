@@ -16,6 +16,6 @@ namespace CovidPipeline.Covid_API.DAL
         List<NationalCasesDADto> GetCountOfCasesByCountry(Metrics metrics, string Country, DateTime? Date);
         List<DailyCaseCountsDADto> GetDailyCaseCountsByCountry(Metrics metrics, string Country);
         List<GlobalTotalCountsDADto> GetGlobalTotalCounts(Metrics metrics);
-
+        Dictionary<string, int> GetLocationTableCompositeKeys();
     }
 }

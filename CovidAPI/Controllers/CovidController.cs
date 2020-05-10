@@ -72,31 +72,7 @@ namespace CovidAPI.Controllers
             return (metrics == Metrics.CONFIRMED_CASES) ? _covidBLService.GetDailyCaseCountsByCountry(Metrics.CONFIRMED_CASES, Country).Select(Item => new DailyCaseCountsDataModel() { Date = Item.Date.ToShortDateString(), Count = Item.Count }).ToList() : (metrics == Metrics.DEATHS) ?
                 _covidBLService.GetDailyCaseCountsByCountry(Metrics.DEATHS, Country).Select(Item => new DailyCaseCountsDataModel() { Date = Item.Date.ToShortDateString(), Count = Item.Count }).ToList() : (metrics == Metrics.RECOVERIES) ?
                 _covidBLService.GetDailyCaseCountsByCountry(Metrics.RECOVERIES, Country).Select(Item => new DailyCaseCountsDataModel() { Date = Item.Date.ToShortDateString(), Count = Item.Count }).ToList() : throw new HttpResponseException(errorResponse); ;
-        }
+        }        
         
-        /*
-         GET: api/Covid/5
-        public IEnumerable<Models.NationalCases> Get(string metrics)
-        {
-            return (metrics == "ConfirmedCases") ?
-                (_covidBLService.GetNationalCaseCounts(Metrics.CONFIRMED_CASES).Select(Item => new Models.NationalCases() { Count = Item.Count, Country = Item.Country }).ToList()) : (metrics == "Deaths") ?
-                (_covidBLService.GetNationalCaseCounts(Metrics.DEATHS).Select(Item => new Models.NationalCases() { Count = Item.Count, Country = Item.Country }).ToList()) :
-                (_covidBLService.GetNationalCaseCounts(Metrics.RECOVERIES).Select(Item => new Models.NationalCases() { Count = Item.Count, Country = Item.Country }).ToList());
-        }
-
-        // POST: api/Covid
-        public void Post([FromBody]string value)
-        {
-        }
-
-        // PUT: api/Covid/5
-        public void Put(int id, [FromBody]string value)
-        {
-        }
-
-        // DELETE: api/Covid/5
-        public void Delete(int id)
-        {
-        }*/
     }
 }

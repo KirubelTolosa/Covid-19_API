@@ -26,6 +26,15 @@ namespace CovidPipeline.Utils
             }
             return dALRecords;
         }
+        public static List<CovidLocationBLDto> MapLocationsDADTOtoBLDTO(List<CovidLocationDADto> bLRecords)
+        {
+            List<CovidLocationBLDto> dALRecords = new List<CovidLocationBLDto>();
+            foreach (var rec in bLRecords)
+            {
+                dALRecords.Add(rec.ToLocationsBLDto());
+            }
+            return dALRecords;
+        }
         public static List<CovidCaseCountBLDto> MapCasecountsDADTotoBLDto(List<CovidCaseCountDADto> bLRecords)
         {
             List<CovidCaseCountBLDto> bLLRecords = new List<CovidCaseCountBLDto>();

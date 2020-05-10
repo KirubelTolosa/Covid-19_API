@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Configuration;
 using System.Data.SqlClient;
+using System.Globalization;
 
 namespace CovidPipeline.DAL
 {
@@ -58,10 +59,57 @@ namespace CovidPipeline.DAL
                 }
 
             }
+        }      
+        public void InsertNewLocations(string dbCompositeKey)
+        {            
+            List<CovidLocationDADto> locationRecords = new List<CovidLocationDADto>();
+            string[] keys = dbCompositeKey.Split('_');
+            CovidLocationDADto locationRecord = new CovidLocationDADto
+            {
+                State = keys[0],
+                Country = keys[1],
+                Lat = Convert.ToDouble(keys[2]),
+                Long = Convert.ToDouble(keys[3])
+            };
+            locationRecords.Add(locationRecord);
+            InsertLocations(Utils.Utilities.MapLocationsDADTOtoBLDTO(locationRecords));
         }
         public void InsertCases(List<CovidCaseCountBLDto> bALRecords, Metrics metrics)
         {
             List<CovidCaseCountDADto> dALRecords = Utils.Utilities.MapCaseCountsBLDTOtoDADTO(bALRecords);
+            Dictionary<string, int> locationTableCompositeKeys = GetLocationTableCompositeKeys();
+            string[] keys;
+            double lat;
+            double Long; 
+            foreach (var rec in dALRecords)
+            {
+                keys = rec.dbCompositeKey.Split('_');
+                lat = Convert.ToDouble(keys[2]);
+                Long = Convert.ToDouble(keys[3]);                
+                if (keys[2].Split('.')[1] == "0")
+                {
+                    keys[2] = keys[2].Split('.')[0];
+                }
+                else
+                {
+                    keys[2] = lat.ToString();
+                }
+                if (keys[3].Split('.')[1] == "0")
+                {
+                    keys[3] = keys[3].Split('.')[0];
+                }
+                else
+                {
+                    keys[3] = Long.ToString();
+                }
+                rec.dbCompositeKey = (keys[0] + '_' + keys[1] + '_' + keys[2] + '_' + keys[3]);                
+                if (!locationTableCompositeKeys.ContainsKey(rec.dbCompositeKey))
+                {                    
+                    InsertNewLocations(rec.dbCompositeKey);
+                    locationTableCompositeKeys = GetLocationTableCompositeKeys();
+                }
+                
+            }            
             using (SqlConnection connection = new SqlConnection(ConfigurationManager.ConnectionStrings["MSSQL_MainDB"].ConnectionString))
             {
                 connection.Open();
@@ -86,18 +134,16 @@ namespace CovidPipeline.DAL
                 sqlCommand.Parameters.Add(Date);
                 sqlCommand.Parameters.Add(Id);
                 sqlCommand.Parameters.Add(Count);
-                //SqlCommand sqlCommand = connection.CreateCommand();
-                SqlTransaction transaction;
-                transaction = connection.BeginTransaction("SampleTransaction");
+                SqlTransaction transaction = connection.BeginTransaction("InsertCases");
                 sqlCommand.Connection = connection;
                 sqlCommand.Transaction = transaction;
                 try
                 {
                     foreach (var record in dALRecords)
                     {
-                        Date.Value = record.Date;
-                        Id.Value = record.Id;
+                        Date.Value = record.Date;                        
                         Count.Value = record.Count;
+                        Id.Value = locationTableCompositeKeys[record.dbCompositeKey];
                         sqlCommand.ExecuteNonQuery();
                     }
                     transaction.Commit();
@@ -117,7 +163,56 @@ namespace CovidPipeline.DAL
                     }
                 }
             }
-        }       
+        }     
+        public Dictionary<string, int> GetLocationTableCompositeKeys()
+        {
+            Dictionary<string, int> locationTableCompositeKeys = new Dictionary<string, int>();
+            SqlConnection connection = new SqlConnection(ConfigurationManager.ConnectionStrings["MSSQL_MainDB"].ConnectionString);
+            SqlCommand sqlCommand = new SqlCommand("SELECT Id, [State], Country, Lat, Long  FROM LocationsGlobal", connection);          
+            connection.Open();
+            SqlDataReader reader = sqlCommand.ExecuteReader();
+            string state = "Null";
+            string country = "Null";
+            double Lat = 0;
+            double Long = 0;
+            try
+            {
+                while (reader.Read())
+                {                    
+                    if ((string)reader["State"] != "")
+                    {
+                        state = (string)reader["State"];
+                    }                       
+                    if ((string)reader["Country"] != "")
+                    {
+                        country = (string)reader["Country"];
+                    }
+                    if ((reader["Lat"]) != null)
+                    {
+                        Lat = Convert.ToDouble(reader["Lat"]);
+                    }
+                    if (reader["Long"] != null)
+                    {
+                        Long = Convert.ToDouble(reader["Long"]);
+                    }
+                    locationTableCompositeKeys.Add((state + '_' + country + '_' + Lat + '_' + Long), (int)reader["Id"]);
+                    state = "Null";
+                    country = "Null";
+                    Lat = 0;
+                    Long = 0;
+                }                
+            }
+            catch (SqlException ex)
+            {
+                Console.WriteLine("Commit Exception Type: {0}", ex.GetType());
+                Console.WriteLine("  Message: {0}", ex.Message);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.Message);
+            }
+            return locationTableCompositeKeys;
+        }
         public DateTime GetLastUpdateDate(Metrics metrics)
         {
             SqlConnection sqlConnection = new SqlConnection(ConfigurationManager.ConnectionStrings["MSSQL_MainDB"].ConnectionString);
@@ -128,10 +223,10 @@ namespace CovidPipeline.DAL
             try
             {
                 sqlConnection.Open();
-                if(metrics == Metrics.CONFIRMED_CASES)
+                if (metrics == Metrics.CONFIRMED_CASES)
                 {
                     LastUpdateDate = (DateTime)sqlCommandConfirmedCases.ExecuteScalar();
-                }                
+                }
                 else if (metrics == Metrics.DEATHS)
                 {
                     LastUpdateDate = (DateTime)sqlCommandDeaths.ExecuteScalar();
@@ -196,32 +291,49 @@ namespace CovidPipeline.DAL
             List<NationalCasesDADto> covidCasesDALRecords = new List<NationalCasesDADto>();
             SqlConnection connection = new SqlConnection(ConfigurationManager.ConnectionStrings["MSSQL_MainDB"].ConnectionString);
             
-            SqlCommand sqlCommand = new SqlCommand("select trim(LocationsGlobal.Country) AS 'Country', Max(ConfirmedCases.ConfirmedCasesCount) AS 'Count' from LocationsGlobal INNER JOIN  ConfirmedCases ON  ConfirmedCases.Id = LocationsGlobal.Id WHERE Country = @ctry group by LocationsGlobal.Country", connection);
+            SqlCommand sqlCommand = new SqlCommand(@"select trim(l.Country) AS 'Country', Max(c.ConfirmedCasesCount) AS 'Count' 
+                                                        from LocationsGlobal l INNER JOIN  ConfirmedCases c ON  c.Id = l.Id 
+                                                        WHERE l.Country = @ctry 
+                                                        group by l.Country", connection);
             if(Date != DateTime.MinValue)
             {
-                sqlCommand = new SqlCommand("select trim(LocationsGlobal.Country) AS 'Country', Max(ConfirmedCases.ConfirmedCasesCount) AS 'Count' from LocationsGlobal INNER JOIN  ConfirmedCases ON  ConfirmedCases.Id = LocationsGlobal.Id WHERE Country = @ctry  and ConfirmedCases.[Date] = @dte  group by LocationsGlobal.Country", connection);
+                sqlCommand = new SqlCommand(@"select trim(l.Country) AS 'Country', Max(c.ConfirmedCasesCount) AS 'Count' 
+                                                        from LocationsGlobal l INNER JOIN  ConfirmedCases c ON  c.Id = l.Id 
+                                                        WHERE Country = @ctry  and c.[Date] = @dte  
+                                                        group by l.Country", connection);
             }
             if (metrics == Metrics.DEATHS)
             {
                 if(Date == DateTime.MinValue)
                 {
-                    sqlCommand = new SqlCommand("select trim(LocationsGlobal.Country) as Country, Max(Deaths.DeathCount) AS Count from LocationsGlobal INNER JOIN  Deaths ON  Deaths.Id = LocationsGlobal.Id WHERE Country = @ctry group by LocationsGlobal.Country", connection);
+                    sqlCommand = new SqlCommand(@"select trim(l.Country) as Country, Max(d.DeathCount) AS Count 
+                                                        from LocationsGlobal l INNER JOIN  Deaths d ON  d.Id = l.Id 
+                                                        WHERE Country = @ctry 
+                                                        group by l.Country", connection);
                 }
                 else
                 {
-                    sqlCommand = new SqlCommand("select trim(LocationsGlobal.Country) as Country, Max(Deaths.DeathCount) AS Count from LocationsGlobal INNER JOIN  Deaths ON  Deaths.Id = LocationsGlobal.Id WHERE Country = @ctry and Deaths.[Date] = @dte group by LocationsGlobal.Country", connection);
-                }
-                
+                    sqlCommand = new SqlCommand(@"select trim(l.Country) as Country, Max(d.DeathCount) AS Count 
+                                                        from LocationsGlobal l INNER JOIN  Deaths d ON  d.Id = l.Id 
+                                                        WHERE l.Country = @ctry and d.[Date] = @dte 
+                                                        group by l.Country", connection);
+                }                
             }
             else if (metrics == Metrics.RECOVERIES)
             {
                 if (Date == DateTime.MinValue)
                 {
-                    sqlCommand = new SqlCommand("select trim(LocationsGlobal.Country)as Country, Max(Recoveries.RecoveriesCount) AS 'Count' from LocationsGlobal INNER JOIN  Recoveries ON  Recoveries.Id = LocationsGlobal.Id WHERE Country = @ctry  group by LocationsGlobal.Country", connection);
+                    sqlCommand = new SqlCommand(@"select trim(l.Country)as Country, Max(r.RecoveriesCount) AS 'Count' 
+                                                    from LocationsGlobal l INNER JOIN  Recoveries r ON  r.Id = l.Id 
+                                                    WHERE l.Country = @ctry  
+                                                    group by l.Country", connection);
                 }
                 else
                 {
-                    sqlCommand = new SqlCommand("select trim(LocationsGlobal.Country)as Country, Max(Recoveries.RecoveriesCount) AS 'Count' from LocationsGlobal INNER JOIN  Recoveries ON  Recoveries.Id = LocationsGlobal.Id WHERE Country = @ctry and Recoveries.[Date] = @dte  group by LocationsGlobal.Country", connection);
+                    sqlCommand = new SqlCommand(@"select trim(l.Country)as Country, Max(r.RecoveriesCount) AS 'Count' 
+                                                    from LocationsGlobal l INNER JOIN  Recoveries r ON  r.Id = l.Id 
+                                                    WHERE l.Country = @ctry and r.[Date] = @dte  
+                                                    group by l.Country", connection);
                 }
                 
             }

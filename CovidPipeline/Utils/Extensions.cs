@@ -11,7 +11,7 @@ namespace CovidPipeline.Utils
         {
             return new CovidCaseCountDADto
             {
-                Id = rec.Id,
+                dbCompositeKey = rec.dbCompositeKey, 
                 Date = rec.Date,
                 Count = rec.Count
             };
@@ -26,11 +26,21 @@ namespace CovidPipeline.Utils
                 Long = rec.Long
             };
         }
+        public static CovidLocationBLDto ToLocationsBLDto(this CovidLocationDADto rec)
+        {
+            return new CovidLocationBLDto
+            {
+                Country = rec.Country,
+                State = rec.State,
+                Lat = rec.Lat,
+                Long = rec.Long
+            };
+        }        
         public static CovidCaseCountBLDto ToCaseCountsBLDto(this CovidCaseCountDADto rec)
         {
             return new CovidCaseCountBLDto
             {
-                Id = rec.Id,
+                dbCompositeKey = rec.dbCompositeKey,                
                 Date = rec.Date,
                 Count = rec.Count
             };

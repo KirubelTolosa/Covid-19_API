@@ -9,15 +9,12 @@ namespace CovidAPI
     {
         public static void Register(HttpConfiguration config)
         {
-            // Web API configuration and services
-
             // Web API routes
             config.MapHttpAttributeRoutes();
 
             config.Routes.MapHttpRoute("CovidNationalCount", "api/covid/{metrics}/{NationalCount}", defaults: new { controller = "Covid", metrics = RouteParameter.Optional, NationalCount = RouteParameter.Optional});
             config.Routes.MapHttpRoute("CovidGlobalCount", "api/covid/{metrics}/GlobalCount", defaults: new { controller = "Covid", metrics = RouteParameter.Optional, GlobalCount = RouteParameter.Optional });
-            //config.Routes.MapHttpRoute("CovidCountByCountry", "api/covid/{metrics}/{Country}", defaults: new { controller = "Covid", metrics = RouteParameter.Optional, Country = RouteParameter.Optional });
-
+            
             config.Routes.MapHttpRoute(
                 name: "DefaultApi",
                 routeTemplate: "api/{controller}/{id}",
