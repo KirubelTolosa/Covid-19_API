@@ -21,8 +21,6 @@ Hosting the application requires changing the endpoint to the databases and sche
 ### URI to access running versions of the application:
 (Documentation included)
     <div>
-      http://covidapi-env.eba-uiymmd7t.us-east-1.elasticbeanstalk.com/
-      <br>
       www.kirubeltolosa.com
     </div>
   <h3>Here are a few example URI refernces to resource usage</h3>  
