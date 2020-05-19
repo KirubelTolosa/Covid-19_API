@@ -1,23 +1,18 @@
 # COVID-19 REST API
 This covid-19 Rest-API can be used to retrieve global covid related data, ConfirmedCases, Deaths, and Recoveries. It contains a pipeline console application which ports over .csv format data from the source to store in a Microsoft SQL Server database, and WebApplication that exposes several endpoints to query the database. </br>
 
-### The technologies/libraries used in the application are the following
+### Technologies and libraries used in the application development 
 <ul>
     <li>Autofac (For dependency injection)</li>    
     <li>ASP.NET (For the web application)</li>
     <li>ADO.NET (For the data access to SQL db)</li>
     <li>CSVHelper (For reading .csv responce)</li>
-<<<<<<< HEAD
     <li>AWS Toolkit for VS(Deployment to elastic beanstalk)</li>
-=======
     <li>AWS Toolkit for VS(Deploment to elastic beanstalk)</li>
->>>>>>> a010501532ce7f1e0ffad76a8d45871676392e9a
     <li>SQL Server Replication (To migrate local DB to Amazon RDS)</li>
     <li>....</li>        
 </ul>
 
-
-Hosting the application requires changing the endpoint to the databases and scheduling a task to update it with recent data. The running version of the application is running in aws elasticbeanstalk environment at the specified urls below. A scheduled task is running every five minutes on a t2.micro EC2 instance to make a call to data source API, filter the most recent data and replenish the database.</br>
 
 Hosting the application requires changing the endpoint to the databases and scheduling a task to update it with recent data. The running version of the application is running in aws elasticbeanstalk environment at the specified urls below. A scheduled task is running every five minutes on a t2.micro EC2 instance to make a call to data source API, filter the most recent data and replenish the database.</br>
 
